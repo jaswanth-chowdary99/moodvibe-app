@@ -26,6 +26,8 @@ history_col = db['moodhistories']
 favorites_col = db['favorites']
 polls_col = db['polls']
 journal_col = db['journal']
+goals_col = db['goals']
+ratings_col = db['ratings']
 
 # Mood metadata
 MOODS = {
@@ -561,6 +563,197 @@ def delete_journal(entry_id):
     if result.deleted_count == 0:
         return jsonify({'error': 'Not found'}), 404
     return jsonify({'message': 'Deleted'})
+
+
+MOOD_AFFIRMATIONS = {
+    'happy': ["I deserve this happiness.", "I choose joy today.", "My happiness inspires others."],
+    'sad': ["It's okay to feel sad.", "I am allowed to grieve.", "Better days are coming."],
+    'energetic': ["I channel this energy wisely.", "I am unstoppable.", "My energy is contagious."],
+    'calm': ["Peace flows through me.", "I am centered and grounded.", "Stillness is my strength."],
+    'romantic': ["I am worthy of love.", "Love surrounds me always.", "My heart is open."],
+    'angry': ["I release what I cannot control.", "My anger does not define me.", "I choose peace over rage."],
+    'nostalgic': ["The past made me who I am.", "I cherish beautiful memories.", "I honor my journey."],
+    'anxious': ["I am safe in this moment.", "This feeling will pass.", "I trust myself to handle anything."],
+    'motivated': ["I am capable of great things.", "Every step forward counts.", "My potential is limitless."],
+    'melancholy': ["There is beauty in sadness.", "I embrace all my emotions.", "This too shall pass."],
+}
+
+MOOD_CHALLENGES = {
+    'happy': ["Share your joy with someone today", "Try a new restaurant", "Dance to 3 songs straight"],
+    'sad': ["Write down 3 things you're grateful for", "Take a 15-min walk outside", "Call someone you miss"],
+    'energetic': ["Do a 20-min workout", "Clean one room completely", "Learn something new for 30 mins"],
+    'calm': ["Meditate for 10 minutes", "Read 20 pages of a book", "Take a tech-free hour"],
+    'romantic': ["Write a love letter (to anyone)", "Watch a romantic movie", "Cook a special meal"],
+    'angry': ["Do 50 pushups", "Write an angry letter then burn it", "Go for a hard run"],
+    'nostalgic': ["Look through old photos", "Revisit a childhood favorite movie", "Call an old friend"],
+    'anxious': ["Practice box breathing 5 times", "List 5 things you can see/hear/feel", "Stretch for 10 minutes"],
+    'motivated': ["Set 3 goals for this week", "Start that project you've been postponing", "Help someone achieve their goal"],
+    'melancholy': ["Listen to music that matches your mood", "Write in your journal", "Watch a Studio Ghibli film"],
+}
+
+
+@app.route('/api/affirmations/<mood>')
+def get_affirmations(mood):
+    if mood not in MOODS:
+        return jsonify({'error': 'Invalid mood'}), 400
+    affirmations = MOOD_AFFIRMATIONS.get(mood, [])
+    return jsonify({'mood': mood, 'affirmations': affirmations})
+
+
+@app.route('/api/challenges/<mood>')
+def get_challenges(mood):
+    if mood not in MOODS:
+        return jsonify({'error': 'Invalid mood'}), 400
+    challenges = MOOD_CHALLENGES.get(mood, [])
+    return jsonify({'mood': mood, 'challenges': challenges})
+
+
+@app.route('/api/goals', methods=['GET'])
+def get_goals():
+    items = list(goals_col.find().sort('createdAt', -1))
+    for item in items:
+        item['_id'] = str(item['_id'])
+        if 'createdAt' in item:
+            item['createdAt'] = item['createdAt'].isoformat()
+    return jsonify(items)
+
+
+@app.route('/api/goals', methods=['POST'])
+def add_goal():
+    data = request.get_json()
+    goal = {
+        'mood': data.get('mood', ''),
+        'description': data.get('description', '').strip(),
+        'completed': False,
+        'createdAt': datetime.utcnow(),
+    }
+    if not goal['description']:
+        return jsonify({'error': 'Description required'}), 400
+    result = goals_col.insert_one(goal)
+    goal['_id'] = str(result.inserted_id)
+    goal['createdAt'] = goal['createdAt'].isoformat()
+    return jsonify(goal), 201
+
+
+@app.route('/api/goals/<goal_id>/complete', methods=['POST'])
+def complete_goal(goal_id):
+    from bson import ObjectId
+    try:
+        result = goals_col.update_one(
+            {'_id': ObjectId(goal_id)},
+            {'$set': {'completed': True, 'completedAt': datetime.utcnow()}}
+        )
+    except Exception:
+        return jsonify({'error': 'Invalid ID'}), 400
+    if result.modified_count == 0:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'message': 'Completed'})
+
+
+@app.route('/api/goals/<goal_id>', methods=['DELETE'])
+def delete_goal(goal_id):
+    from bson import ObjectId
+    try:
+        result = goals_col.delete_one({'_id': ObjectId(goal_id)})
+    except Exception:
+        return jsonify({'error': 'Invalid ID'}), 400
+    if result.deleted_count == 0:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'message': 'Deleted'})
+
+
+@app.route('/api/ratings', methods=['POST'])
+def rate_recommendation():
+    data = request.get_json()
+    item_id = data.get('itemId')
+    rating = data.get('rating')  # 'up' or 'down'
+    if not item_id or rating not in ('up', 'down'):
+        return jsonify({'error': 'itemId and rating (up/down) required'}), 400
+
+    existing = ratings_col.find_one({'itemId': item_id})
+    if existing:
+        ratings_col.update_one({'itemId': item_id}, {'$set': {'rating': rating}})
+    else:
+        ratings_col.insert_one({
+            'itemId': item_id,
+            'title': data.get('title', ''),
+            'category': data.get('category', ''),
+            'mood': data.get('mood', ''),
+            'rating': rating,
+            'createdAt': datetime.utcnow(),
+        })
+    return jsonify({'message': 'Rated'})
+
+
+@app.route('/api/ratings/<item_id>', methods=['GET'])
+def get_rating(item_id):
+    r = ratings_col.find_one({'itemId': item_id})
+    if r:
+        return jsonify({'itemId': item_id, 'rating': r['rating']})
+    return jsonify({'itemId': item_id, 'rating': None})
+
+
+@app.route('/api/insights')
+def get_insights():
+    from collections import Counter
+    items = list(history_col.find().sort('createdAt', -1))
+    if not items:
+        return jsonify({'insights': [], 'patterns': {}})
+
+    mood_counts = Counter(i['mood'] for i in items)
+    source_counts = Counter(i.get('source', 'manual') for i in items)
+    total = len(items)
+
+    # Day-of-week analysis
+    day_counts = Counter()
+    for item in items:
+        if 'createdAt' in item and isinstance(item['createdAt'], datetime):
+            day_counts[item['createdAt'].strftime('%A')] += 1
+
+    # Time-of-day analysis
+    time_counts = Counter()
+    for item in items:
+        if 'createdAt' in item and isinstance(item['createdAt'], datetime):
+            hour = item['createdAt'].hour
+            if hour < 6:
+                time_counts['Night'] += 1
+            elif hour < 12:
+                time_counts['Morning'] += 1
+            elif hour < 18:
+                time_counts['Afternoon'] += 1
+            else:
+                time_counts['Evening'] += 1
+
+    # Generate insights
+    insights = []
+    top_mood = mood_counts.most_common(1)[0] if mood_counts else None
+    if top_mood:
+        m = MOODS.get(top_mood[0], {})
+        insights.append(f"Your most frequent mood is {m.get('emoji', '')} {m.get('label', top_mood[0])} ({top_mood[1]} times)")
+
+    if day_counts:
+        top_day = day_counts.most_common(1)[0]
+        insights.append(f"You check in most on {top_day[0]}s ({top_day[1]} times)")
+
+    if time_counts:
+        top_time = time_counts.most_common(1)[0]
+        insights.append(f"You're most active in the {top_time[0].lower()} ({top_time[1]} check-ins)")
+
+    text_source = source_counts.get('text', 0)
+    if text_source > 0:
+        pct = round(text_source / total * 100)
+        insights.append(f"{pct}% of your check-ins used text analysis")
+
+    return jsonify({
+        'total': total,
+        'insights': insights,
+        'patterns': {
+            'moodCounts': dict(mood_counts),
+            'dayCounts': dict(day_counts),
+            'timeCounts': dict(time_counts),
+            'sourceCounts': dict(source_counts),
+        }
+    })
 
 
 # --- Seed Polls (run once) ---

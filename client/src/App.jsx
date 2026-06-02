@@ -18,6 +18,14 @@ import MoodJournal from './components/MoodJournal';
 import ThemeToggle from './components/ThemeToggle';
 import MoodParticles from './components/MoodParticles';
 import LoadingSkeleton from './components/LoadingSkeleton';
+import MoodWheel from './components/MoodWheel';
+import MoodGoals from './components/MoodGoals';
+import MoodAffirmations from './components/MoodAffirmations';
+import MoodChallenges from './components/MoodChallenges';
+import MoodTimeline from './components/MoodTimeline';
+import MoodPlaylist from './components/MoodPlaylist';
+import MoodInsights from './components/MoodInsights';
+import RecommendationRating from './components/RecommendationRating';
 import { getMoods, getRecommendations, analyzeText, logMood, getHistory, getLanguages, getQuote, getFavorites, addFavorite, removeFavorite, getStats, clearHistory, exportHistory } from './api';
 
 function App() {
@@ -285,6 +293,13 @@ function App() {
             )}
 
             {currentMood && (
+              <div className="mood-extras">
+                <MoodAffirmations mood={currentMood} moods={moods} />
+                <MoodChallenges mood={currentMood} moods={moods} />
+              </div>
+            )}
+
+            {currentMood && (
               <>
                 <ShareCard mood={currentMood} moods={moods} recommendations={recommendations} />
                 <CategoryTabs
@@ -304,14 +319,17 @@ function App() {
 
             <div ref={resultsRef}>
               {Object.keys(filteredRecommendations).length > 0 && (
-                <ResultsGrid
-                  recommendations={filteredRecommendations}
-                  moods={moods}
-                  currentMood={currentMood}
-                  favorites={favoriteIds}
-                  onToggleFavorite={handleToggleFavorite}
-                  searchQuery={searchQuery}
-                />
+                <>
+                  <MoodPlaylist mood={currentMood} moods={moods} recommendations={filteredRecommendations} />
+                  <ResultsGrid
+                    recommendations={filteredRecommendations}
+                    moods={moods}
+                    currentMood={currentMood}
+                    favorites={favoriteIds}
+                    onToggleFavorite={handleToggleFavorite}
+                    searchQuery={searchQuery}
+                  />
+                </>
               )}
               {currentMood && Object.keys(recommendations).length > 0 && Object.keys(filteredRecommendations).length === 0 && (
                 <div className="empty-state">
@@ -366,6 +384,24 @@ function App() {
         {view === 'reverse' && (
           <ReverseLookup moods={moods} />
         )}
+
+        {view === 'wheel' && (
+          <div className="wheel-page">
+            <MoodWheel moods={moods} onSelect={handleMoodSelect} />
+          </div>
+        )}
+
+        {view === 'goals' && (
+          <MoodGoals moods={moods} />
+        )}
+
+        {view === 'insights' && (
+          <MoodInsights moods={moods} />
+        )}
+
+        {view === 'timeline' && (
+          <MoodTimeline history={history} moods={moods} />
+        )}
       </main>
 
       <nav className="bottom-nav">
@@ -373,21 +409,21 @@ function App() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
           <span>Home</span>
         </button>
-        <button className={`bottom-nav-item ${view === 'journal' ? 'active' : ''}`} onClick={() => switchView('journal')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <span>Journal</span>
+        <button className={`bottom-nav-item ${view === 'wheel' ? 'active' : ''}`} onClick={() => switchView('wheel')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          <span>Wheel</span>
         </button>
-        <button className={`bottom-nav-item ${view === 'combos' ? 'active' : ''}`} onClick={() => switchView('combos')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-          <span>Combos</span>
+        <button className={`bottom-nav-item ${view === 'goals' ? 'active' : ''}`} onClick={() => switchView('goals')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          <span>Goals</span>
         </button>
         <button className={`bottom-nav-item ${view === 'favorites' ? 'active' : ''}`} onClick={() => switchView('favorites')}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
           <span>Favs</span>
         </button>
-        <button className={`bottom-nav-item ${view === 'stats' ? 'active' : ''}`} onClick={() => switchView('stats')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-          <span>Stats</span>
+        <button className={`bottom-nav-item ${view === 'insights' ? 'active' : ''}`} onClick={() => switchView('insights')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <span>Insights</span>
         </button>
       </nav>
     </div>

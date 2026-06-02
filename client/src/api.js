@@ -30,6 +30,15 @@ export const exportHistory = () => api.get('/history/export', { responseType: 't
 export const getJournal = () => api.get('/journal');
 export const addJournal = (data) => api.post('/journal', data);
 export const deleteJournal = (id) => api.delete(`/journal/${id}`);
+export const getAffirmations = (mood) => api.get(`/affirmations/${mood}`);
+export const getChallenges = (mood) => api.get(`/challenges/${mood}`);
+export const getGoals = () => api.get('/goals');
+export const addGoal = (data) => api.post('/goals', data);
+export const completeGoal = (id) => api.post(`/goals/${id}/complete`);
+export const deleteGoal = (id) => api.delete(`/goals/${id}`);
+export const rateRecommendation = (data) => api.post('/ratings', data);
+export const getRating = (itemId) => api.get(`/ratings/${itemId}`);
+export const getInsights = () => api.get('/insights');
 
 export const getCalendar = (days = 90) => api.get(`/calendar?days=${days}`);
 export const getCombos = (mood) => api.get(`/combos/${mood}`);
