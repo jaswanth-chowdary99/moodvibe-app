@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: moodvibe-app
+    runtime: python
+    buildCommand: cd client && npm install && npm run build && cd ../server && pip install -r requirements.txt
+    startCommand: cd server && gunicorn app:app
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: PORT
+        value: 5000
