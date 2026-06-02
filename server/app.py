@@ -18,7 +18,7 @@ CORS(app)
 
 # MongoDB
 client = MongoClient(os.environ.get('MONGO_URI'))
-db = client.get_default_database()
+db = client['mood-recommender']
 recommendations_col = db['recommendations']
 history_col = db['moodhistories']
 
