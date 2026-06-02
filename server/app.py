@@ -5,6 +5,8 @@ Mood-based movie, music & anime recommender with MongoDB
 
 import os
 import random
+import csv
+import io
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -23,6 +25,7 @@ recommendations_col = db['recommendations']
 history_col = db['moodhistories']
 favorites_col = db['favorites']
 polls_col = db['polls']
+journal_col = db['journal']
 
 # Mood metadata
 MOODS = {
@@ -495,6 +498,69 @@ def reverse_lookup():
             r['_id'] = str(r['_id'])
 
     return jsonify({'query': query, 'results': results})
+
+
+@app.route('/api/history/clear', methods=['DELETE'])
+def clear_history():
+    result = history_col.delete_many({})
+    return jsonify({'deleted': result.deleted_count})
+
+
+@app.route('/api/history/export')
+def export_history():
+    items = list(history_col.find().sort('createdAt', -1))
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['mood', 'confidence', 'source', 'date'])
+    for item in items:
+        writer.writerow([
+            item.get('mood', ''),
+            item.get('confidence', ''),
+            item.get('source', ''),
+            item.get('createdAt', '').isoformat() if isinstance(item.get('createdAt'), datetime) else item.get('createdAt', ''),
+        ])
+    return output.getvalue(), 200, {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': 'attachment; filename=moodvibe_history.csv'
+    }
+
+
+@app.route('/api/journal', methods=['GET'])
+def get_journal():
+    items = list(journal_col.find().sort('createdAt', -1).limit(50))
+    for item in items:
+        item['_id'] = str(item['_id'])
+        if 'createdAt' in item:
+            item['createdAt'] = item['createdAt'].isoformat()
+    return jsonify(items)
+
+
+@app.route('/api/journal', methods=['POST'])
+def add_journal():
+    data = request.get_json()
+    entry = {
+        'mood': data.get('mood', ''),
+        'note': data.get('note', '').strip(),
+        'createdAt': datetime.utcnow(),
+    }
+    if not entry['note']:
+        return jsonify({'error': 'Note required'}), 400
+    result = journal_col.insert_one(entry)
+    entry['_id'] = str(result.inserted_id)
+    entry['createdAt'] = entry['createdAt'].isoformat()
+    return jsonify(entry), 201
+
+
+@app.route('/api/journal/<entry_id>', methods=['DELETE'])
+def delete_journal(entry_id):
+    from bson import ObjectId
+    try:
+        result = journal_col.delete_one({'_id': ObjectId(entry_id)})
+    except Exception:
+        return jsonify({'error': 'Invalid ID'}), 400
+    if result.deleted_count == 0:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'message': 'Deleted'})
 
 
 # --- Seed Polls (run once) ---

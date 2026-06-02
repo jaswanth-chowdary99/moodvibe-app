@@ -14,7 +14,11 @@ import MoodCalendar from './components/MoodCalendar';
 import VibePolls from './components/VibePolls';
 import MoodCombos from './components/MoodCombos';
 import ReverseLookup from './components/ReverseLookup';
-import { getMoods, getRecommendations, analyzeText, logMood, getHistory, getLanguages, getQuote, getFavorites, addFavorite, removeFavorite, getStats } from './api';
+import MoodJournal from './components/MoodJournal';
+import ThemeToggle from './components/ThemeToggle';
+import MoodParticles from './components/MoodParticles';
+import LoadingSkeleton from './components/LoadingSkeleton';
+import { getMoods, getRecommendations, analyzeText, logMood, getHistory, getLanguages, getQuote, getFavorites, addFavorite, removeFavorite, getStats, clearHistory, exportHistory } from './api';
 
 function App() {
   const [moods, setMoods] = useState({});
@@ -33,6 +37,7 @@ function App() {
   const [favoriteIds, setFavoriteIds] = useState(new Set());
   const [stats, setStats] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [theme, setTheme] = useState(() => localStorage.getItem('mv-theme') || 'dark');
 
   const pickerRef = useRef(null);
   const resultsRef = useRef(null);
@@ -40,7 +45,13 @@ function App() {
   useEffect(() => {
     getMoods().then(res => setMoods(res.data)).catch(console.error);
     loadFavorites();
+    document.documentElement.setAttribute('data-theme', theme);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('mv-theme', theme);
+  }, [theme]);
 
   const scrollToPicker = () => {
     setView('home');
@@ -197,14 +208,45 @@ function App() {
     if (v === 'stats') loadStats();
   };
 
+  const handleClearHistory = async () => {
+    if (!window.confirm('Clear all mood history?')) return;
+    try {
+      await clearHistory();
+      setHistory([]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleExportHistory = async () => {
+    try {
+      const res = await exportHistory();
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'moodvibe_history.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   const filteredRecommendations = filterRecommendations();
 
   return (
     <div className="app">
       <div className="bg-mesh"></div>
       <div className="grain"></div>
+      {currentMood && <MoodParticles mood={currentMood} moods={moods} />}
 
       <Navbar view={view} switchView={switchView} currentMood={currentMood} moods={moods} />
+      <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
       <main>
         {view === 'home' && (
@@ -282,7 +324,23 @@ function App() {
         )}
 
         {view === 'history' && (
-          <MoodHistory history={history} moods={moods} />
+          <div>
+            <div className="history-actions">
+              <button className="btn-export" onClick={handleExportHistory}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export CSV
+              </button>
+              <button className="btn-clear" onClick={handleClearHistory}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                Clear
+              </button>
+            </div>
+            <MoodHistory history={history} moods={moods} />
+          </div>
+        )}
+
+        {view === 'journal' && (
+          <MoodJournal moods={moods} currentMood={currentMood} />
         )}
 
         {view === 'favorites' && (
@@ -315,13 +373,13 @@ function App() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
           <span>Home</span>
         </button>
+        <button className={`bottom-nav-item ${view === 'journal' ? 'active' : ''}`} onClick={() => switchView('journal')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Journal</span>
+        </button>
         <button className={`bottom-nav-item ${view === 'combos' ? 'active' : ''}`} onClick={() => switchView('combos')}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
           <span>Combos</span>
-        </button>
-        <button className={`bottom-nav-item ${view === 'polls' ? 'active' : ''}`} onClick={() => switchView('polls')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-          <span>Polls</span>
         </button>
         <button className={`bottom-nav-item ${view === 'favorites' ? 'active' : ''}`} onClick={() => switchView('favorites')}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>

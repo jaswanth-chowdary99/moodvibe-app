@@ -25,6 +25,11 @@ export const addFavorite = (item) => api.post('/favorites', item);
 export const removeFavorite = (itemId) => api.delete(`/favorites/${itemId}`);
 
 export const getStats = () => api.get('/stats');
+export const clearHistory = () => api.delete('/history/clear');
+export const exportHistory = () => api.get('/history/export', { responseType: 'text' });
+export const getJournal = () => api.get('/journal');
+export const addJournal = (data) => api.post('/journal', data);
+export const deleteJournal = (id) => api.delete(`/journal/${id}`);
 
 export const getCalendar = (days = 90) => api.get(`/calendar?days=${days}`);
 export const getCombos = (mood) => api.get(`/combos/${mood}`);

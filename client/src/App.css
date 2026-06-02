@@ -1872,3 +1872,282 @@ body {
   .nav-links { overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
   .nav-links::-webkit-scrollbar { display: none; }
 }
+
+/* --- Theme Toggle --- */
+
+[data-theme="light"] {
+  --bg: #f8f7ff;
+  --surface: #ffffff;
+  --surface-2: #f0eef8;
+  --surface-3: #e8e6f0;
+  --border: #ddd8ee;
+  --border-light: #ccc6e0;
+  --text: #1a1a2e;
+  --text-secondary: #555570;
+  --text-muted: #8888a0;
+  --accent-glow: rgba(124, 58, 237, 0.08);
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: rotate(15deg);
+}
+
+/* --- Mood Journal --- */
+
+.journal-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 100px 24px 100px;
+}
+
+.journal-count {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.journal-input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.journal-current-mood {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.journal-mood-emoji { font-size: 20px; }
+
+.journal-mood-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.journal-textarea {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.journal-textarea:focus {
+  border-color: var(--accent);
+}
+
+.journal-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.journal-input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.journal-char-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.journal-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.journal-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.journal-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.journal-entry-mood {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.journal-entry-emoji { font-size: 18px; }
+
+.journal-entry-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.journal-entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.journal-entry-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.journal-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.journal-delete-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.journal-entry-note {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* --- History Actions --- */
+
+.history-actions {
+  display: flex;
+  gap: 10px;
+  padding: 100px 24px 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.btn-export, .btn-clear {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-export:hover { border-color: var(--accent); color: var(--accent); }
+.btn-clear:hover { border-color: #ef4444; color: #ef4444; }
+
+/* --- Loading Skeletons --- */
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.skeleton-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+}
+
+.skeleton-mood-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-emoji {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.skeleton-pulse {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive for all new features */
+@media (max-width: 768px) {
+  .theme-toggle { top: 70px; right: 12px; width: 36px; height: 36px; }
+  .history-actions { padding: 100px 16px 12px; }
+}
