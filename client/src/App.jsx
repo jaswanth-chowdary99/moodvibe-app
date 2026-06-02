@@ -10,6 +10,10 @@ import Favorites from './components/Favorites';
 import MoodStats from './components/MoodStats';
 import SearchBar from './components/SearchBar';
 import ShareCard from './components/ShareCard';
+import MoodCalendar from './components/MoodCalendar';
+import VibePolls from './components/VibePolls';
+import MoodCombos from './components/MoodCombos';
+import ReverseLookup from './components/ReverseLookup';
 import { getMoods, getRecommendations, analyzeText, logMood, getHistory, getLanguages, getQuote, getFavorites, addFavorite, removeFavorite, getStats } from './api';
 
 function App() {
@@ -288,6 +292,22 @@ function App() {
         {view === 'stats' && (
           <MoodStats stats={stats} moods={moods} />
         )}
+
+        {view === 'calendar' && (
+          <MoodCalendar moods={moods} />
+        )}
+
+        {view === 'polls' && (
+          <VibePolls moods={moods} />
+        )}
+
+        {view === 'combos' && (
+          <MoodCombos moods={moods} />
+        )}
+
+        {view === 'reverse' && (
+          <ReverseLookup moods={moods} />
+        )}
       </main>
 
       <nav className="bottom-nav">
@@ -295,17 +315,21 @@ function App() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
           <span>Home</span>
         </button>
+        <button className={`bottom-nav-item ${view === 'combos' ? 'active' : ''}`} onClick={() => switchView('combos')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          <span>Combos</span>
+        </button>
+        <button className={`bottom-nav-item ${view === 'polls' ? 'active' : ''}`} onClick={() => switchView('polls')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          <span>Polls</span>
+        </button>
         <button className={`bottom-nav-item ${view === 'favorites' ? 'active' : ''}`} onClick={() => switchView('favorites')}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-          <span>Favorites</span>
+          <span>Favs</span>
         </button>
         <button className={`bottom-nav-item ${view === 'stats' ? 'active' : ''}`} onClick={() => switchView('stats')}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
           <span>Stats</span>
-        </button>
-        <button className={`bottom-nav-item ${view === 'history' ? 'active' : ''}`} onClick={() => switchView('history')}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
-          <span>History</span>
         </button>
       </nav>
     </div>

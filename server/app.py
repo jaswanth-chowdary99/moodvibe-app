@@ -5,7 +5,7 @@ Mood-based movie, music & anime recommender with MongoDB
 
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
@@ -22,6 +22,7 @@ db = client['mood-recommender']
 recommendations_col = db['recommendations']
 history_col = db['moodhistories']
 favorites_col = db['favorites']
+polls_col = db['polls']
 
 # Mood metadata
 MOODS = {
@@ -312,7 +313,246 @@ def get_stats():
     })
 
 
+@app.route('/api/calendar')
+def get_calendar():
+    """Get mood history grouped by date for the last 90 days."""
+    days = int(request.args.get('days', 90))
+    since = datetime.utcnow() - timedelta(days=days)
+    items = list(history_col.find({'createdAt': {'$gte': since}}).sort('createdAt', -1))
+
+    calendar = {}
+    for item in items:
+        date_key = item['createdAt'].strftime('%Y-%m-%d')
+        if date_key not in calendar:
+            calendar[date_key] = {'moods': [], 'count': 0}
+        calendar[date_key]['moods'].append(item['mood'])
+        calendar[date_key]['count'] += 1
+
+    # Find dominant mood per day
+    from collections import Counter
+    for date_key in calendar:
+        mood_counts = Counter(calendar[date_key]['moods'])
+        calendar[date_key]['dominant'] = mood_counts.most_common(1)[0][0]
+
+    return jsonify({'calendar': calendar, 'days': days})
+
+
+# Curated mood combos
+MOOD_COMBOS = {
+    'happy': [
+        {'movie': 'Zindagi Na Milegi Dobara', 'music': 'Senorita — Shankar Ehsaan Loy', 'snack': 'Ice cream sundae', 'vibe': 'Road trip energy'},
+        {'movie': 'The Intern', 'music': 'Happy — Pharrell Williams', 'snack': 'Fruit smoothie bowl', 'vibe': 'Feel-good afternoon'},
+    ],
+    'sad': [
+        {'movie': 'Tamasha', 'music': 'Agar Tum Saath Ho — Arijit Singh', 'snack': 'Hot chocolate + blanket', 'vibe': 'Let it out, then heal'},
+        {'movie': 'Inside Out', 'music': 'Fix You — Coldplay', 'snack': 'Warm cookies', 'vibe': 'It\'s okay to feel'},
+    ],
+    'energetic': [
+        {'movie': 'RRR', 'music': 'Naatu Naatu — Rahul Sipligunj', 'snack': 'Protein shake + trail mix', 'vibe': 'Unstoppable mode'},
+        {'movie': 'Baby Driver', 'music': 'Blinding Lights — The Weeknd', 'snack': 'Loaded nachos', 'vibe': 'Full throttle'},
+    ],
+    'calm': [
+        {'movie': 'Before Sunrise', 'music': 'Sunset Lover — Petit Biscuit', 'snack': 'Green tea + dark chocolate', 'vibe': 'Slow down & breathe'},
+        {'movie': 'Your Name', 'music': 'Sparkle — RADWIMPS', 'snack': 'Matcha latte', 'vibe': 'Peaceful evening'},
+    ],
+    'romantic': [
+        {'movie': 'Sita Ramam', 'music': 'Thuli Thuli — Haricharan', 'snack': 'Wine + strawberries', 'vibe': 'Date night at home'},
+        {'movie': 'The Notebook', 'music': 'Perfect — Ed Sheeran', 'snack': 'Chocolate fondue', 'vibe': 'Classic romance'},
+    ],
+    'angry': [
+        {'movie': 'Vikram', 'music': 'Vikram Theme — Anirudh', 'snack': 'Spicy wings', 'vibe': 'Let it burn (productively)'},
+        {'movie': 'John Wick', 'music': 'Lose Yourself — Eminem', 'snack': 'Crunchy chips', 'vibe': 'Channel the rage'},
+    ],
+    'nostalgic': [
+        {'movie': 'Mouna Ragam', 'music': 'Roja Kaadhal Rojave — SPB', 'snack': 'Childhood candy + chai', 'vibe': 'Golden era feels'},
+        {'movie': 'Stand By Me', 'music': 'Don\'t Stop Believin\' — Journey', 'snack': 'PB&J sandwich', 'vibe': 'Back to simpler times'},
+    ],
+    'anxious': [
+        {'movie': 'Kung Fu Panda', 'music': 'Weightless — Marconi Union', 'snack': 'Herbal tea + almonds', 'vibe': 'Inner peace mode'},
+        {'movie': 'Finding Nemo', 'music': 'Here Comes The Sun — Beatles', 'snack': 'Warm soup', 'vibe': 'Just keep swimming'},
+    ],
+    'motivated': [
+        {'movie': 'MS Dhoni: The Untold Story', 'music': 'Lakshya Title Track — Shankar Mahadevan', 'snack': 'Black coffee + banana', 'vibe': 'Grindset activated'},
+        {'movie': 'The Pursuit of Happyness', 'music': 'Stronger — Kanye West', 'snack': 'Energy balls', 'vibe': 'Nothing stops you'},
+    ],
+    'melancholy': [
+        {'movie': 'October', 'music': 'The Night We Met — Lord Huron', 'snack': 'Chamomile tea', 'vibe': 'Beautiful sadness'},
+        {'movie': 'A Silent Voice', 'music': 'LiSA — Shirushi', 'snack': 'Warm milk + honey', 'vibe': 'Quiet reflection'},
+    ],
+}
+
+
+@app.route('/api/combos/<mood>')
+def get_combos(mood):
+    if mood not in MOODS:
+        return jsonify({'error': 'Invalid mood'}), 400
+    combos = MOOD_COMBOS.get(mood, [])
+    return jsonify({'mood': mood, 'combos': combos})
+
+
+@app.route('/api/polls', methods=['GET'])
+def get_polls():
+    """Get active polls."""
+    now = datetime.utcnow()
+    polls = list(polls_col.find({'expiresAt': {'$gt': now}}).sort('createdAt', -1).limit(5))
+    for poll in polls:
+        poll['_id'] = str(poll['_id'])
+        poll['createdAt'] = poll['createdAt'].isoformat()
+        poll['expiresAt'] = poll['expiresAt'].isoformat()
+    return jsonify(polls)
+
+
+@app.route('/api/polls', methods=['POST'])
+def create_poll():
+    """Create a new poll."""
+    data = request.get_json()
+    mood = data.get('mood')
+    if not mood or mood not in MOODS:
+        return jsonify({'error': 'Invalid mood'}), 400
+
+    # Generate poll options from recommendations
+    categories = ['music', 'movies', 'anime']
+    options = []
+    for cat in categories:
+        items = list(recommendations_col.aggregate([
+            {'$match': {'mood': mood, 'category': cat}},
+            {'$sample': {'size': 2}},
+            {'$project': {'mood': 0}},
+        ]))
+        for item in items:
+            item['_id'] = str(item['_id'])
+            options.append({
+                'id': item['_id'],
+                'title': item.get('title', ''),
+                'category': cat,
+                'votes': 0,
+            })
+
+    poll = {
+        'mood': mood,
+        'question': f"Pick your vibe {mood} choice!",
+        'options': options[:6],
+        'totalVotes': 0,
+        'createdAt': datetime.utcnow(),
+        'expiresAt': datetime.utcnow() + timedelta(hours=24),
+    }
+    result = polls_col.insert_one(poll)
+    poll['_id'] = str(result.inserted_id)
+    poll['createdAt'] = poll['createdAt'].isoformat()
+    poll['expiresAt'] = poll['expiresAt'].isoformat()
+    return jsonify(poll), 201
+
+
+@app.route('/api/polls/<poll_id>/vote', methods=['POST'])
+def vote_poll(poll_id):
+    """Vote on a poll option."""
+    data = request.get_json()
+    option_id = data.get('optionId')
+    if not option_id:
+        return jsonify({'error': 'optionId required'}), 400
+
+    from bson import ObjectId
+    try:
+        result = polls_col.update_one(
+            {'_id': ObjectId(poll_id), 'options.id': option_id},
+            {'$inc': {'options.$.votes': 1, 'totalVotes': 1}}
+        )
+    except Exception:
+        return jsonify({'error': 'Invalid poll ID'}), 400
+
+    if result.modified_count == 0:
+        return jsonify({'error': 'Poll or option not found'}), 404
+
+    poll = polls_col.find_one({'_id': ObjectId(poll_id)})
+    poll['_id'] = str(poll['_id'])
+    poll['createdAt'] = poll['createdAt'].isoformat()
+    poll['expiresAt'] = poll['expiresAt'].isoformat()
+    return jsonify(poll)
+
+
+@app.route('/api/reverse-lookup', methods=['POST'])
+def reverse_lookup():
+    """Find what mood a title matches."""
+    data = request.get_json()
+    query = data.get('query', '').strip()
+    if not query:
+        return jsonify({'error': 'Query required'}), 400
+
+    # Search by title (case-insensitive partial match)
+    results = list(recommendations_col.find(
+        {'title': {'$regex': query, '$options': 'i'}}
+    ).limit(10))
+
+    for r in results:
+        r['_id'] = str(r['_id'])
+
+    if not results:
+        # Try genre search
+        results = list(recommendations_col.find(
+            {'genre': {'$regex': query, '$options': 'i'}}
+        ).limit(10))
+        for r in results:
+            r['_id'] = str(r['_id'])
+
+    return jsonify({'query': query, 'results': results})
+
+
+# --- Seed Polls (run once) ---
+
+@app.route('/api/seed-polls', methods=['POST'])
+def seed_polls():
+    """Create sample polls for each mood."""
+    from bson import ObjectId
+    polls_col.delete_many({})
+    now = datetime.utcnow()
+
+    for mood in MOODS:
+        options = []
+        for cat in ['music', 'movies', 'anime']:
+            items = list(recommendations_col.aggregate([
+                {'$match': {'mood': mood, 'category': cat}},
+                {'$sample': {'size': 2}},
+                {'$project': {'mood': 0}},
+            ]))
+            for item in items:
+                item['_id'] = str(item['_id'])
+                options.append({
+                    'id': item['_id'],
+                    'title': item.get('title', ''),
+                    'category': cat,
+                    'votes': random.randint(0, 50),
+                })
+
+        poll = {
+            'mood': mood,
+            'question': f"What's your ultimate {mood} pick?",
+            'options': options[:6],
+            'totalVotes': sum(o['votes'] for o in options[:6]),
+            'createdAt': now,
+            'expiresAt': now + timedelta(hours=48),
+        }
+        polls_col.insert_one(poll)
+
+    return jsonify({'message': f'Seeded {len(MOODS)} polls'})
+
+
 # --- Serve React ---
+
+@app.route('/')
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+
+@app.route('/<path:path>')
+def serve_static(path):
+    if os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, 'index.html')
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, port=port)
 
 @app.route('/')
 def serve_index():

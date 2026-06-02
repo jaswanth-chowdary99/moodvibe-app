@@ -26,4 +26,12 @@ export const removeFavorite = (itemId) => api.delete(`/favorites/${itemId}`);
 
 export const getStats = () => api.get('/stats');
 
+export const getCalendar = (days = 90) => api.get(`/calendar?days=${days}`);
+export const getCombos = (mood) => api.get(`/combos/${mood}`);
+export const getPolls = () => api.get('/polls');
+export const createPoll = (mood) => api.post('/polls', { mood });
+export const votePoll = (pollId, optionId) => api.post(`/polls/${pollId}/vote`, { optionId });
+export const reverseLookup = (query) => api.post('/reverse-lookup', { query });
+export const seedPolls = () => api.post('/seed-polls');
+
 export default api;
