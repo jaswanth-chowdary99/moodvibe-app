@@ -1,4 +1,4 @@
-function Hero({ scrollToPicker }) {
+function Hero({ scrollToPicker, onSurpriseMe }) {
   return (
     <div className="hero">
       <div className="hero-content">
@@ -13,6 +13,10 @@ function Hero({ scrollToPicker }) {
           <button className="btn-hero-cta" onClick={scrollToPicker}>
             Pick your mood
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></svg>
+          </button>
+          <button className="btn-surprise" onClick={onSurpriseMe}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            Surprise me
           </button>
         </div>
       </div>

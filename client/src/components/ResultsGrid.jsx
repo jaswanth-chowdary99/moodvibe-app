@@ -1,6 +1,6 @@
 import ResultCard from './ResultCard';
 
-function ResultsGrid({ recommendations, moods, currentMood }) {
+function ResultsGrid({ recommendations, moods, currentMood, favoriteIds, onToggleFavorite }) {
   const categoryConfig = {
     music: {
       title: 'Music',
@@ -36,6 +36,8 @@ function ResultsGrid({ recommendations, moods, currentMood }) {
                   item={item}
                   category={cat}
                   delay={catIdx * 0.1 + i * 0.05}
+                  isFavorited={favoriteIds?.has(item._id)}
+                  onToggleFavorite={onToggleFavorite}
                 />
               ))}
             </div>

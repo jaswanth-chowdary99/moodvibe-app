@@ -758,6 +758,276 @@ body {
   opacity: 0;
 }
 
+/* Surprise Me Button */
+.btn-surprise {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-surprise:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+  transform: translateY(-2px);
+}
+
+/* Mood Quote */
+.vibe-quote {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: italic;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Favorite Button */
+.favorite-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 2;
+  opacity: 0;
+}
+
+.result-card:hover .favorite-btn,
+.movie-card:hover .favorite-btn,
+.anime-card:hover .favorite-btn {
+  opacity: 1;
+}
+
+.favorite-btn.favorited {
+  opacity: 1;
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.3);
+  background: rgba(239,68,68,0.1);
+}
+
+.favorite-btn:hover {
+  transform: scale(1.15);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.result-card, .movie-card, .anime-card { position: relative; }
+
+/* Search Bar */
+.search-section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px 16px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent);
+}
+
+.search-bar svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-bar input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+}
+
+.search-bar input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--surface-2);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.search-clear:hover {
+  color: var(--text);
+  background: var(--surface-3);
+}
+
+/* Share Section */
+.share-section {
+  text-align: center;
+  padding: 0 24px 8px;
+}
+
+.btn-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-share:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Favorites Page */
+.favorites-page .favorites-count {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* Stats Page */
+.stats-page .stats-total {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-card-emoji {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.stat-card-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-card-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.mood-chart {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.chart-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.chart-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.chart-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 120px;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.chart-emoji { font-size: 16px; }
+
+.chart-bar-track {
+  flex: 1;
+  height: 24px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  height: 100%;
+  border-radius: 12px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+
+.chart-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 32px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Nav link extras */
+.nav-link.favorites-link { color: var(--text-muted); }
+.nav-link.stats-link { color: var(--text-muted); }
+
 /* Responsive */
 @media (max-width: 768px) {
   .nav-links { display: none; }
@@ -768,6 +1038,9 @@ body {
   .result-grid { grid-template-columns: 1fr; }
   .hero-actions { flex-direction: column; align-items: center; }
   .nav-vibe-indicator { display: none; }
+  .stats-cards { grid-template-columns: 1fr; }
+  .chart-label { width: 90px; }
+  .favorite-btn { opacity: 1; }
 }
 
 @media (max-width: 480px) {
@@ -775,4 +1048,382 @@ body {
   .vibe-card { padding: 14px; }
   .vibe-card-emoji { font-size: 24px; }
   .vibe-card-label { font-size: 13px; }
+}
+
+/* --- New Features --- */
+
+/* Surprise Me Button */
+.btn-surprise {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-surprise:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+  transform: translateY(-2px);
+}
+
+/* Mood Quote */
+.vibe-quote {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 12px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Search Bar */
+.search-section {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px 16px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  transition: border-color 0.2s;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent);
+}
+
+.search-bar svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+}
+
+.search-bar input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--surface-2);
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.search-clear:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* Favorite Button on Cards */
+.favorite-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 2;
+  opacity: 0;
+}
+
+.result-card:hover .favorite-btn,
+.movie-card:hover .favorite-btn,
+.anime-card:hover .favorite-btn,
+.favorite-btn.favorited {
+  opacity: 1;
+}
+
+.favorite-btn:hover {
+  color: #f43f5e;
+  border-color: #f43f5e;
+}
+
+.favorite-btn.favorited {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+.result-card, .movie-card, .anime-card {
+  position: relative;
+}
+
+/* Share Card */
+.share-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 500px;
+  margin: 0 auto 20px;
+  padding: 14px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.share-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.share-card-emoji {
+  font-size: 28px;
+}
+
+.share-card-mood {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.share-card-rec {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.btn-share {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius-xs);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-share:hover { opacity: 0.9; }
+
+/* Favorites Page */
+.favorites-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 100px 24px 100px;
+}
+
+.favorites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.favorites-header h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.favorites-count {
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 4px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+}
+
+/* Stats Page */
+.stats-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 100px 24px 100px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: -1px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mood-breakdown {
+  margin-bottom: 40px;
+}
+
+.mood-breakdown h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.mood-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mood-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mood-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.mood-bar-emoji { font-size: 18px; }
+
+.mood-bar-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mood-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--surface);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.mood-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.6s ease;
+}
+
+.mood-bar-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 30px;
+  text-align: right;
+}
+
+.stats-recent h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.stats-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.stats-recent-emoji { font-size: 22px; }
+
+.stats-recent-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-recent-mood {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.stats-recent-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stats-recent-source {
+  padding: 3px 8px;
+  background: var(--surface-2);
+  border-radius: 100px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Responsive updates for new features */
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: 1fr; gap: 8px; }
+  .hero-actions { flex-direction: column; align-items: center; }
+  .share-card { flex-direction: column; gap: 12px; text-align: center; }
+  .share-card-inner { justify-content: center; }
+  .mood-bar-label { width: 80px; }
+  .mood-bar-name { display: none; }
 }

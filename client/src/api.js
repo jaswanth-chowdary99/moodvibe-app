@@ -18,4 +18,12 @@ export const getHistory = () => api.get('/history');
 
 export const getLanguages = (mood) => api.get(`/languages/${mood}`);
 
+export const getQuote = (mood) => api.get(`/quote/${mood}`);
+
+export const getFavorites = () => api.get('/favorites');
+export const addFavorite = (item) => api.post('/favorites', item);
+export const removeFavorite = (itemId) => api.delete(`/favorites/${itemId}`);
+
+export const getStats = () => api.get('/stats');
+
 export default api;

@@ -21,6 +21,7 @@ client = MongoClient(os.environ.get('MONGO_URI'))
 db = client['mood-recommender']
 recommendations_col = db['recommendations']
 history_col = db['moodhistories']
+favorites_col = db['favorites']
 
 # Mood metadata
 MOODS = {
@@ -48,6 +49,60 @@ MOOD_KEYWORDS = {
     'anxious': ['anxious', 'worried', 'nervous', 'stressed', 'overwhelmed', 'panic', 'fear', 'uncertain', 'restless', 'bhayam', 'tension'],
     'motivated': ['motivated', 'determined', 'goals', 'hustle', 'grind', 'achieve', 'success', 'ambitious', 'driven', 'strong', 'power', 'win'],
     'melancholy': ['melancholy', 'bittersweet', 'wistful', 'longing', 'yearning', 'pensive', 'reflective', 'contemplative', 'bada', 'soch', 'dard'],
+}
+
+# Mood quotes
+MOOD_QUOTES = {
+    'happy': [
+        "Happiness is not by chance, but by choice.",
+        "Collect moments, not things.",
+        "Your vibe attracts your tribe.",
+    ],
+    'sad': [
+        "It's okay to not be okay sometimes.",
+        "Tears are words the heart can't express.",
+        "After every storm, there's a rainbow waiting.",
+    ],
+    'energetic': [
+        "Channel that energy into something amazing.",
+        "You're unstoppable when you're fired up.",
+        "Go hard or go home.",
+    ],
+    'calm': [
+        "Peace comes from within. Do not seek it without.",
+        "Inhale confidence, exhale doubt.",
+        "Stillness is the key to everything.",
+    ],
+    'romantic': [
+        "Love is the poetry of the senses.",
+        "Every love story is beautiful, but ours is my favorite.",
+        "You're my favorite notification.",
+    ],
+    'angry': [
+        "Use that fire to fuel your greatness.",
+        "Anger is a signal, not a solution.",
+        "Breathe. It's just a bad day, not a bad life.",
+    ],
+    'nostalgic': [
+        "The good old days were called good for a reason.",
+        "Nostalgia is a file that removes the rough edges from the good old days.",
+        "Sometimes you have to look back to see how far you've come.",
+    ],
+    'anxious': [
+        "You've survived 100% of your worst days so far.",
+        "This too shall pass.",
+        "Worrying means you suffer twice.",
+    ],
+    'motivated': [
+        "The only way to do great work is to love what you do.",
+        "Dream big, start small, act now.",
+        "Your only limit is your mind.",
+    ],
+    'melancholy': [
+        "There's a kind of beauty in sadness.",
+        "Melancholy is the pleasure of being sad.",
+        "Even the darkest night will end and the sun will rise.",
+    ],
 }
 
 
@@ -162,6 +217,99 @@ def log_history():
     entry['_id'] = str(result.inserted_id)
     entry['createdAt'] = entry['createdAt'].isoformat()
     return jsonify(entry)
+
+
+@app.route('/api/quote/<mood>')
+def get_quote(mood):
+    if mood not in MOODS:
+        return jsonify({'error': 'Invalid mood'}), 400
+    quotes = MOOD_QUOTES.get(mood, [])
+    quote = random.choice(quotes) if quotes else "Go with the flow."
+    return jsonify({'mood': mood, 'quote': quote})
+
+
+@app.route('/api/favorites', methods=['GET'])
+def get_favorites():
+    items = list(favorites_col.find().sort('createdAt', -1))
+    for item in items:
+        item['_id'] = str(item['_id'])
+        if 'createdAt' in item:
+            item['createdAt'] = item['createdAt'].isoformat()
+    return jsonify(items)
+
+
+@app.route('/api/favorites', methods=['POST'])
+def add_favorite():
+    data = request.get_json()
+    item_id = data.get('itemId')
+    if not item_id:
+        return jsonify({'error': 'itemId required'}), 400
+
+    existing = favorites_col.find_one({'itemId': item_id})
+    if existing:
+        return jsonify({'message': 'Already in favorites'}), 200
+
+    fav = {
+        'itemId': item_id,
+        'title': data.get('title', ''),
+        'artist': data.get('artist', ''),
+        'genre': data.get('genre', ''),
+        'platform': data.get('platform', ''),
+        'url': data.get('url', ''),
+        'category': data.get('category', ''),
+        'mood': data.get('mood', ''),
+        'lang': data.get('lang', ''),
+        'rating': data.get('rating'),
+        'episodes': data.get('episodes'),
+        'dub': data.get('dub'),
+        'createdAt': datetime.utcnow(),
+    }
+    result = favorites_col.insert_one(fav)
+    fav['_id'] = str(result.inserted_id)
+    fav['createdAt'] = fav['createdAt'].isoformat()
+    return jsonify(fav), 201
+
+
+@app.route('/api/favorites/<item_id>', methods=['DELETE'])
+def remove_favorite(item_id):
+    result = favorites_col.delete_one({'itemId': item_id})
+    if result.deleted_count == 0:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'message': 'Removed'})
+
+
+@app.route('/api/stats')
+def get_stats():
+    from collections import Counter
+    items = list(history_col.find().sort('createdAt', -1))
+    for item in items:
+        item['_id'] = str(item['_id'])
+        if 'createdAt' in item:
+            item['createdAt'] = item['createdAt'].isoformat()
+
+    mood_counts = Counter(i['mood'] for i in items)
+    total = len(items)
+
+    # Streak calculation
+    streak = 0
+    if items:
+        current_mood = items[0]['mood']
+        for item in items:
+            if item['mood'] == current_mood:
+                streak += 1
+            else:
+                break
+
+    # Most frequent mood
+    most_frequent = mood_counts.most_common(1)[0][0] if mood_counts else None
+
+    return jsonify({
+        'total': total,
+        'moodCounts': dict(mood_counts),
+        'mostFrequent': most_frequent,
+        'currentStreak': streak,
+        'recentHistory': items[:10],
+    })
 
 
 # --- Serve React ---

@@ -1,4 +1,4 @@
-function ResultCard({ item, category, delay }) {
+function ResultCard({ item, category, delay, isFavorited, onToggleFavorite }) {
   const cardClass = category === 'music' ? 'result-card' : category === 'movies' ? 'movie-card' : 'anime-card';
 
   const platformIcons = {
@@ -13,6 +13,26 @@ function ResultCard({ item, category, delay }) {
     'YouTube': '▶️',
   };
 
+  const handleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onToggleFavorite) {
+      onToggleFavorite({
+        itemId: item._id,
+        title: item.title,
+        artist: item.artist,
+        genre: item.genre,
+        platform: item.platform,
+        url: item.url,
+        category,
+        lang: item.lang,
+        rating: item.rating,
+        episodes: item.episodes,
+        dub: item.dub,
+      });
+    }
+  };
+
   return (
     <a
       href={item.url || '#'}
@@ -21,6 +41,16 @@ function ResultCard({ item, category, delay }) {
       className={`${cardClass} fade-in-up clickable-card`}
       style={{ animationDelay: `${delay}s`, textDecoration: 'none', color: 'inherit' }}
     >
+      <button
+        className={`favorite-btn ${isFavorited ? 'favorited' : ''}`}
+        onClick={handleFavorite}
+        title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+      </button>
+
       {category === 'music' && (
         <>
           <div className="result-card-icon">
